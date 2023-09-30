@@ -14,7 +14,7 @@ namespace ex37
             const string CommandLookInQuiver = "2";
             const string CommandDealDamageWithSword = "3";
 
-            int enemyHealth = 200;
+            int enemyHealth = 200; 
             int heroHealth = 100;
             int enemyDamage = 20;
             bool isOpen = true;
