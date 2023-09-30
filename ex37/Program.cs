@@ -12,38 +12,40 @@ namespace ex37
         {
             const string CommandTakeAShot = "1";
             const string CommandLookInQuiver = "2";
+            const string CommandDealDamageWithSword = "3";
 
-            int health = 100;
+            int enemyHealth = 200;
+            int heroHealth = 100;
+            int enemyDamage = 20;
             bool isOpen = true;
+
+            Sword sword = new Sword(20);
 
             Arrow arrow = new Arrow("Деревянная стрела");
 
-            Quiver quiver = new Quiver(arrow, 10);
+            Quiver quiver = new Quiver(arrow, 6);
 
             Bow bow = new Bow(0, quiver);
 
             while (isOpen)
             {
-                Console.WriteLine($"Здоровье врага: {health} HP");
-                Console.Write($"{CommandTakeAShot} - сделать выстрел\n{CommandLookInQuiver} - посмотреть в колчан\nСделать выстрел?");
-                int chosenAction = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine($"Здоровье врага: {enemyHealth} HP\nВаше здоровье: {heroHealth}");
+                Console.Write($"\n{CommandTakeAShot} - сделать выстрел из лука\n{CommandLookInQuiver} - посмотреть в колчан\n" +
+                    $"{CommandDealDamageWithSword} - ударить мечом\n\nКакое действие выполнить? ");
+                string chosenAction = Console.ReadLine();
+
                 switch (chosenAction)
                 {
-                    case 1:
-                        int damage = bow.TakeAShot(bow.Damage);
-                        health -= damage;
-                        Console.WriteLine($"Вы нанесли {damage} урона");
-
-                        if (health <= 0)
-                        {
-                            Console.WriteLine("Враг повержен!");
-                            isOpen = false;
-                        }
-
+                    case CommandTakeAShot:
+                        isOpen = DealDamageWithBow(ref enemyHealth, bow);
                         break;
 
-                    case 2:
+                    case CommandLookInQuiver:
                         quiver.ShowAllArrows();
+                        break;
+
+                    case CommandDealDamageWithSword:
+                        isOpen = DealDamageWithSword(ref enemyHealth, sword, ref heroHealth, enemyDamage);
                         break;
 
                     default:
@@ -54,6 +56,48 @@ namespace ex37
                 Console.ReadKey();
                 Console.Clear();
             }
+        }
+
+        static bool DealDamageWithBow(ref int enemyHealth, Bow bow)
+        {
+            int damage = bow.TakeAShot(bow.Damage);
+
+            enemyHealth -= damage;
+            Console.WriteLine($"Вы нанесли {damage} урона");
+
+            return FinishHim(enemyHealth);
+        }
+
+        static bool DealDamageWithSword(ref int enemyHealth, Sword sword, ref int heroHealth, int enemyDamage)
+        {
+            enemyHealth -= sword.Damage;
+            heroHealth -= enemyDamage;
+            Console.WriteLine($"Вы нанесли {sword.Damage} урона");
+
+            return FinishHim(enemyHealth);
+        }
+
+        static bool FinishHim(int enemyHealth)
+        {
+            if (enemyHealth <= 0)
+            {
+                Console.WriteLine("Враг повержен!");
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+    }
+
+    class Sword
+    {
+        public int Damage;
+
+        public Sword(int damage)
+        {
+            Damage = damage;
         }
     }
 
@@ -81,11 +125,20 @@ namespace ex37
         public int TakeAShot(int damage)
         {
             Random random = new Random();
+            int successShot = random.Next(0, 5);
 
             if (Quiver.IsEmpty())
             {
-                damage += random.Next(5, 11);
-                Quiver.ArrowCount--;
+                if (successShot > 0)
+                {
+                    damage += random.Next(20, 41);
+                    Quiver.ArrowCount--;
+                }
+                else
+                {
+                    Quiver.ArrowCount--;
+                    Console.WriteLine("Вы промазали...");
+                }
             }
 
             return damage;
@@ -112,7 +165,7 @@ namespace ex37
         {
             if (ArrowCount == 0)
             {
-                Console.WriteLine("Стрелы кончились");
+                Console.WriteLine("Стрелы кончились...");
                 return false;
             }
             else
